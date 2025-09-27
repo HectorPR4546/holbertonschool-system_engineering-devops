@@ -1,0 +1,17 @@
+flowchart TD
+    User[User Browser] -->|HTTPS 443| VIP[Virtual IP on HAProxy pair]
+    VIP --> HAProxyA[HAProxy A (active)]
+    VIP --> HAProxyB[HAProxy B (standby)]
+
+    HAProxyA -->|HTTP 80| Web1[Nginx Web Server 1]
+    HAProxyA -->|HTTP 80| Web2[Nginx Web Server 2]
+
+    Web1 --> App1[App Server 1]
+    Web2 --> App2[App Server 2]
+
+    App1 --> DBPrimary[MySQL Primary]
+    App2 --> DBReplica[MySQL Replica]
+    DBPrimary -. replication .-> DBReplica
+
+    Note[Issues: single MySQL writer, more ops overhead, latency checks needed]
+    HAProxyA -.-> Note
