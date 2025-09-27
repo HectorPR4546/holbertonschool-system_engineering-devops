@@ -1,4 +1,3 @@
-```mermaid
 graph TD
     User[User Browser] -->|Types www.foobar.com| DNS[DNS for foobar.com]
     DNS -->|A record returns 8.8.8.8| User
@@ -16,4 +15,3 @@ graph TD
 
     %% Weak spots
     Nginx -. single box, if it dies everything dies .-> Nginx
-```
