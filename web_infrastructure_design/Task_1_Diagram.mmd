@@ -4,11 +4,11 @@ flowchart TD
     LB -->|Round-robin| ServerB
 
     subgraph ServerAStack [Server A]
-        ServerA[Nginx + App + MySQL\n(Primary)]
+        ServerA[Nginx + App + MySQL<br/>Primary]
     end
 
     subgraph ServerBStack [Server B]
-        ServerB[Nginx + App + MySQL\n(Replica)]
+        ServerB[Nginx + App + MySQL<br/>Replica]
     end
 
     ServerA -. replication binlog .-> ServerB
