@@ -1,0 +1,31 @@
+When someone types www.foobar.com in their browser, DNS still sends back our public IP. This time the IP belongs to an HAProxy load balancer. The load balancer speaks HTTP with the user and spreads the hits across two identical backend servers.
+
+ASCII sketch
+User --> Internet --> HAProxy LB --> Server A
+                                 \-> Server B
+Each server: Nginx -> App code -> MySQL
+
+Why the extra pieces
+- HAProxy: I need something to split traffic. I configure round-robin so request 1 hits Server A, request 2 hits Server B, then it repeats. That gives both boxes work and helps with load spikes.
+- Server A and Server B: they both run Nginx, the app runtime, the same code base, and a local MySQL instance. Having two lets me lose one and still serve users.
+- Database replication: I set Server A’s MySQL as the primary (master) and Server B’s MySQL as the replica (slave). The replica  copies the binlog stream so it keeps up with writes.
+
+About the load balancer
+- Mode: Active-Active because both servers answer requests all the time. In Active-Passive only one node is live and the other waits for failover, so I would lose half my capacity.
+
+Primary vs replica
+- Primary node handles all writes from the app and pushes changes to the replica.
+- Replica stays read-only; the app can point read-heavy features (like reporting) at it, but any write must still hit the primary.
+- If the primary dies I must promote the replica manually (or with automation) before the site can accept new writes.
+
+How the primary-replica flow works
+1. App running on either server connects to the local MySQL primary for writes.
+2. MySQL records the change in the binary log.
+3. Replica pulls the log and replays it so tables stay in sync.
+
+Weak spots I notice
+- SPOF: the HAProxy box is alone; if it is down nobody reaches the site. The MySQL primary is also a SPOF for writes.
+- Security: still no firewall rules, no HTTPS certs, so traffic and ports are wide open.
+- Monitoring: I do not have metrics or alerting here, so I would not see CPU spikes or replication lag until users complain.
+
+What travels between user and site: plain HTTP over TCP (port 80). Internally the servers talk over the private network for SQL replication and health checks.
