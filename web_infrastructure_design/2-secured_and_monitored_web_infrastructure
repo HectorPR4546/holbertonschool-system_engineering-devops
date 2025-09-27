@@ -1,0 +1,29 @@
+Friend hits https://www.foobar.com. DNS returns the public IP of my HAProxy load balancer again. The browser opens an HTTPS session with the balancer because I installed an SSL cert for foobar.com there. The balancer checks the certificate, then forwards traffic to the backend servers over our private network.
+
+Quick layout in words
+User -> Internet -> Firewall #1 -> HAProxy LB (SSL termination) -> Firewall #2 -> Server A
+                                                         \-> Firewall #3 -> Server B
+Server A: Nginx + App code + MySQL primary + monitoring agent
+Server B: Nginx + App code + MySQL replica + monitoring agent
+HAProxy also has a monitoring agent.
+
+Why I added each new thing
+- Firewalls (three total): network filters that only let expected ports through. One sits in front of HAProxy (allow 443/80), one shields Server A, one shields Server B (allow 80 from LB, 3306 from peers, monitoring port, etc.). They cut down random traffic and lateral movement.
+- SSL certificate: I want HTTPS so traffic between the user and LB is encrypted. Users avoid warnings and data is not in plain text on the wire.
+- Monitoring clients: lightweight agents (think Sumo Logic collector) that ship logs and metrics from each node to a monitoring service. That lets me watch CPU, memory, Nginx status, DB replication lag, and I can plot QPS.
+
+More detail on the monitoring
+- Tool use: detect issues before users complain, watch trends, alert me if something breaks.
+- Collection: the agent tails logs, gathers system stats, and pushes them over TLS to the monitoring backend on a schedule.
+- To monitor web server QPS (requests per second): configure the agent to read Nginx access logs or status endpoint, calculate request counts, and send that metric. Then dashboard it or set an alert threshold.
+
+Trade-offs / concerns that remain
+- SSL ends at the load balancer. Traffic between LB and backend is plain HTTP. An attacker on the internal network could sniff it. Better would be end-to-end HTTPS.
+- Still a single MySQL primary. All writes hit Server A. If it dies, I have to promote Server B manually, and write queries stall meanwhile. Automatic failover or a clustered DB would be safer.
+- Both app servers run MySQL plus the app on the same box. Heavy DB load could starve the web tier (CPU, RAM, disk). Splitting DB onto dedicated nodes or using managed DB would reduce resource contention.
+
+Protocols in play
+- User <-> LB: HTTPS (HTTP over TLS on TCP 443).
+- LB <-> servers: HTTP over TCP 80 (no TLS in this design).
+- MySQL replication: TCP 3306 between Server A and Server B.
+- Monitoring agents: outbound TLS to the monitoring provider.
