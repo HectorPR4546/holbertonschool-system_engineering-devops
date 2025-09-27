@@ -1,0 +1,19 @@
+```mermaid
+graph TD
+    User[User Browser] -->|Types www.foobar.com| DNS[DNS for foobar.com]
+    DNS -->|A record returns 8.8.8.8| User
+    User -->|HTTP over TCP| Nginx
+
+    subgraph Single_Server[Single Server @ 8.8.8.8]
+        Nginx[Nginx Web Server]
+        App[Application Server]
+        Files[Application Files]
+        DB[MySQL Database]
+        Nginx -->|Serves static files| Files
+        Nginx -->|Sends dynamic stuff| App
+        App -->|Reads/Writes| DB
+    end
+
+    %% Weak spots
+    Nginx -. single box, if it dies everything dies .-> Nginx
+```
