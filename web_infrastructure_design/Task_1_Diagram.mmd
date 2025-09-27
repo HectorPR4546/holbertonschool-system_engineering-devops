@@ -1,14 +1,14 @@
 flowchart TD
     User[User Browser] -->|HTTP request| LB[HAProxy Load Balancer]
-    LB -->|Round-robin| ServerA[Nginx + App + MySQL (Primary)]
-    LB -->|Round-robin| ServerB[Nginx + App + MySQL (Replica)]
+    LB -->|Round-robin| ServerA
+    LB -->|Round-robin| ServerB
 
     subgraph ServerAStack [Server A]
-        ServerA
+        ServerA[Nginx + App + MySQL\n(Primary)]
     end
 
     subgraph ServerBStack [Server B]
-        ServerB
+        ServerB[Nginx + App + MySQL\n(Replica)]
     end
 
     ServerA -. replication binlog .-> ServerB
