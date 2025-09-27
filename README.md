@@ -11,3 +11,7 @@
 ## Task 2 - Secured and monitored web infrastructure
 - [`web_infrastructure_design/2-secured_and_monitored_web_infrastructure`](web_infrastructure_design/2-secured_and_monitored_web_infrastructure): description of the secured HTTPS + monitoring layout.
 - [`web_infrastructure_design/Task_2_Diagram.mmd`](web_infrastructure_design/Task_2_Diagram.mmd): Mermaid diagram highlighting firewalls, SSL, and monitoring agents.
+
+## Task 3 - Scale up
+- [`web_infrastructure_design/3-scale_up`](web_infrastructure_design/3-scale_up): notes on the multi-tier scaled architecture with HAProxy cluster.
+- [`web_infrastructure_design/Task_3_Diagram.mmd`](web_infrastructure_design/Task_3_Diagram.mmd): Mermaid diagram showing separated web, app, and DB tiers.
