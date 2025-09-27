@@ -1,11 +1,13 @@
-When a friend types www.foobar.com in their browser, the browser talks to DNS first. DNS has an A record for www that points straight to 8.8.8.8, which is the public IP of my only server.
+When a friend types www.foobar.com in their browser, the browser talks to DNS first.
+DNS has an A record for www that points straight to 8.8.8.8, which is the public IP of my only server.
 
 That one box runs everything:
 - Nginx sits in front and answers HTTP requests. It serves the static files and passes the dynamic stuff to the app server process.
 - The application server runs my project code (think PHP-FPM or a small Python service). It handles the logic.
 - The code reads and writes data in a local MySQL database so we keep user info safe between visits.
 
-The machine itself is just a computer in the cloud with an OS. It speaks with the user’s browser through TCP connections over HTTP (port 80). The domain name makes life easier because nobody wants to remember raw IPs.
+The machine itself is just a computer in the cloud with an OS. It speaks with the user’s browser through TCP connections over HTTP (port 80).
+The domain name makes life easier because nobody wants to remember raw IPs.
 
 Problems I already see:
 - One server only. If it crashes, everything is down (single point of failure).
