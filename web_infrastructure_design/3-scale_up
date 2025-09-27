@@ -1,0 +1,23 @@
+User hits https://www.foobar.com. DNS gives back the virtual IP that fronts an active HAProxy pair (two load balancers in a cluster using VRRP keepalived). Only one floats the VIP at a time, but if it fails, the other one grabs it so traffic keeps flowing.
+
+Behind the VIP I now have three dedicated tiers:
+1. Web tier: two Nginx servers that only serve static files and reverse proxy to the app tier.
+2. App tier: two application servers (running the code runtime, e.g., Gunicorn or PHP-FPM) that focus on business logic.
+3. Data tier: a MySQL primary and a MySQL replica that live on their own hardware.
+
+Why add each piece
+- Second HAProxy: gives me failover for the entry point. One handles requests, the other waits with identical config. If the active node dies, keepalived promotes the standby in seconds.
+- Dedicated web servers: keeping Nginx on its own boxes means static file serving and TLS termination do not fight with app or DB CPU.
+- Dedicated app servers: the code runtime can scale separately. I can add or remove app nodes without touching web or DB.
+- Dedicated database servers: the primary handles writes, the replica takes reads and acts as standby. No more sharing resources with the app tier.
+- Shared storage/code deploy (rsync or artifact pipeline) keeps web/app nodes in sync so they all run the same release.
+
+Request flow in short words
+User -> VIP on HAProxy cluster -> active HAProxy -> chosen Nginx web node -> app node -> MySQL primary/replica depending on query.
+
+Issues that still exist
+- The MySQL primary is still a single writer (needs promotion plan).
+- More servers mean more operations overhead (config management, monitoring, patching).
+- Need to watch cross-tier latency and configure health checks between LB and nodes.
+
+Key takeaway from the README: Web server handles HTTP and static assets; application server runs the dynamic code. Splitting them lets each tier scale or fail independently.
