@@ -1,0 +1,17 @@
+flowchart TD
+    User[User Browser] -->|HTTP request| LB[HAProxy Load Balancer]
+    LB -->|Round-robin| ServerA[Nginx + App + MySQL (Primary)]
+    LB -->|Round-robin| ServerB[Nginx + App + MySQL (Replica)]
+
+    subgraph ServerAStack [Server A]
+        ServerA
+    end
+
+    subgraph ServerBStack [Server B]
+        ServerB
+    end
+
+    ServerA -. replication binlog .-> ServerB
+
+    Note[SPOF: HAProxy + MySQL primary | No HTTPS | No monitoring]
+    LB -.-> Note
